@@ -5,28 +5,25 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-14 # Provisions an Apple Silicon Runner
     steps:
       - name: Fetch Official Raw Blink Source Code
         run: |
-          # Clones the raw, uncorrupted official code directly from the creators
-          git clone --recursive --depth 1 https://github.com/blinksh/blink.git .
+          git clone --recursive --depth 1 https://github.com .
           
-          # Downloads Blink's native precompiled frameworks (OpenSSL, libssh2, etc.)
           chmod +x ./get_frameworks.sh
           ./get_frameworks.sh
           
-          # Cleans up shared workspace data that forces paid team constraints
           rm -rf Blink.xcodeproj/project.xcworkspace/xcshareddata/
 
-      - name: Set up Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+      - name: Set up Modern Xcode Version
+        # Updates the builder environment to utilize Xcode 16.0 to handle project format 70
+        run: sudo xcode-select -s /Applications/Xcode_16.0.app
 
       - name: Force Compile Open-Source Unsigned IPA
         run: |
           mkdir -p dist
           
-          # Compiles the pristine project file while passing the native GPL switch 
           xcodebuild -project Blink.xcodeproj \
                      -scheme Blink \
                      -configuration Release \
@@ -36,7 +33,6 @@ jobs:
                      CODE_SIGNING_REQUIRED=NO \
                      clean build
           
-          # Packages the output app structure into an iOS Payload directory
           mkdir -p dist/Payload
           cp -r build/Release-iphoneos/Blink.app dist/Payload/ || cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/Blink.app dist/Payload/
           
