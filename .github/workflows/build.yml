@@ -9,8 +9,11 @@ jobs:
     steps:
       - name: Manually Clone Code Base
         run: |
-          git clone --recursive https://github.com{{ github.repository }}.git .
-          git checkout ${{ github.sha }}
+          git init .
+          git remote add origin https://github.com{{ github.repository }}.git
+          git fetch --depth 1 origin ${{ github.sha }}
+          git checkout FETCH_HEAD
+          git submodule update --init --recursive --depth 1
 
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
