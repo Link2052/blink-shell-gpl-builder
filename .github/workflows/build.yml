@@ -37,6 +37,8 @@ jobs:
                      GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GPL=1' \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
+                     SUPPORTS_MACCATALYST=NO \
+                     BUILD_INT_PLUGINS=NO \
                      clean build
           
           # Packages the output app structure into an iOS Payload directory
