@@ -22,9 +22,6 @@ jobs:
           # Deduplicates the Mosh picker asset layout to stop the Xcode 16 compilation crash
           sed -i '' '/MoshCustomOptionsPickerView.swift/d' Blink.xcodeproj/project.pbxproj
 
-          # Strips out the nested FileProvider app extensions that trigger code-sign verification locks
-          sed -i '' '/BlinkFileProviderExtension/d' Blink.xcodeproj/project.pbxproj
-
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
@@ -40,6 +37,7 @@ jobs:
                      GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GPL=1' \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_IDENTITY="" \
                      SUPPORTS_MACCATALYST=NO \
                      BUILD_INT_PLUGINS=NO \
                      clean build
