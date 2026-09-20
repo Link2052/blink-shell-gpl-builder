@@ -7,52 +7,45 @@ jobs:
   build:
     runs-on: macos-14
     steps:
-      - name: Checkout Repository Natively
-        uses: actions/checkout@v4.2.2
-        with:
-          submodules: 'recursive'
-        env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
+      - name: Fetch Official Raw Blink Source Code
+        run: |
+          # Clones the raw, uncorrupted official code directly from the creators
+          git clone --recursive --depth 1 https://github.com/blinksh/blink.git .
+          
+          # Downloads Blink's native precompiled frameworks (OpenSSL, libssh2, etc.)
+          chmod +x ./build-blink-shell-gpl.sh
+          ./build-blink-shell-gpl.sh
+          
+          # Cleans up shared workspace data that forces paid team constraints
+          rm -rf Blink.xcodeproj/project.xcworkspace/xcshareddata/
 
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
 
-      - name: Install System Dependencies
-        run: brew install jq # Installs the JSON parser required by your fork's script
-
-      - name: Execute Sideload Build Script
-        env:
-          # Sets a dummy team ID so the script compiles without a paid Apple account
-          TEAM_ID: "1234567890" 
-          # Forces Xcode to compile raw unsigned binaries natively
-          CODE_SIGNING_ALLOWED: "NO"
-          CODE_SIGNING_REQUIRED: "NO"
+      - name: Force Compile Open-Source Unsigned IPA
         run: |
-          chmod +x ./build-blink-shell-gpl.sh
-          ./build-blink-shell-gpl.sh
-
-      - name: Manual Failback Compilation (If Script Fails to Find Project)
-        if: failure() # Runs ONLY if the step above throws the "Blink.app not found" error
-        env:
-          CODE_SIGNING_ALLOWED: "NO"
-          CODE_SIGNING_REQUIRED: "NO"
-        run: |
-          # Forces compilation directly from the script's download folder
-          cd blink-src/
+          mkdir -p dist
           
+          # Compiles the pristine project file while passing the native GPL switch 
           xcodebuild -project Blink.xcodeproj \
                      -scheme Blink \
                      -configuration Release \
                      -sdk iphoneos \
+                     GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GPL=1' \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
                      clean build
           
-          # Manually package the resulting binary into the expected destination
-          mkdir -p ../dist/Payload
-          cp -r build/Release-iphoneos/Blink.app ../dist/Payload/ || cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/Blink.app ../dist/Payload/
-          cd ../dist && zip -r Blink-unsigned.ipa Payload
+          # Packages the output app structure into an iOS Payload directory
+          mkdir -p dist/Payload
+          cp -r build/Release-iphoneos/Blink.app dist/Payload/ || cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/Blink.app dist/Payload/
+          
+          cd dist
+          zip -r Blink.ipa Payload
 
       - name: Upload Finished File
         uses: actions/upload-artifact@v4
         with:
           name: Blink-Shell-GPL
-          path: dist/*.ipa # Collects whichever .ipa file successfully wrapped up
+          path: dist/Blink.ipa
+
