@@ -32,17 +32,18 @@ jobs:
         run: |
           mkdir -p dist
           
-          # Compiles via -project while explicitly narrowing the target architecture down to pure iOS
+          # Appends explicit SWIFT_VERSION=5 mapping and relaxes strict Swift 6 warning captures
           xcodebuild -project Blink.xcodeproj \
                      -scheme Blink \
                      -configuration Release \
                      -sdk iphoneos \
-                     -destination 'generic/platform=iOS' \
                      GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GPL=1' \
+                     SWIFT_VERSION=5 \
+                     SWIFT_TREAT_WARNINGS_AS_ERRORS=NO \
+                     SUPPORTS_MACCATALYST=NO \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_IDENTITY="" \
-                     SUPPORTS_MACCATALYST=NO \
                      clean build
           
           # Packages the output app structure into an iOS Payload directory
