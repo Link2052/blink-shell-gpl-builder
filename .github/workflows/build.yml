@@ -7,24 +7,37 @@ jobs:
   build:
     runs-on: macos-14
     steps:
-      - name: Checkout Repository Natively
+      - name: Checkout Repository
         uses: actions/checkout@v4.2.2
         with:
           submodules: 'recursive'
         env:
           ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
 
-      - name: Set up Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
-
-      - name: Make Script Executable & Compile
+      - name: Fetch Low-Level Frameworks
         run: |
-          chmod +x ./build.sh
-          ./build.sh
+          chmod +x ./get_frameworks.sh ./get_resources.sh
+          ./get_frameworks.sh
+          ./get_resources.sh
 
+      - name: Compile IPA Binary via Xcode
+        run: |
+          mkdir -p dist
+          xcodebuild -project Blink.xcodeproj \
+                     -scheme Blink \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     clean build
+          
+          # Package the compiled app folder into an installable payload
+          mkdir -p dist/Payload
+          cp -r build/Release-iphoneos/Blink.app dist/Payload/
+          cd dist && zip -r Blink.ipa Payload
+          
       - name: Upload Finished File
         uses: actions/upload-artifact@v4
         with:
           name: Blink-Shell-GPL
-          path: dist/*.ipa
-
+          path: dist/Blink.ipa
