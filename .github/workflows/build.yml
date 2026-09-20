@@ -17,17 +17,37 @@ jobs:
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
 
-      - name: Make Script Executable & Compile With Sign Bypass
-        env:
-          # Injects code sign bypass flags globally into your fork's script execution
-          XCODEFLAGS: "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO"
+      - name: Initialize Blink Native Frameworks
         run: |
           chmod +x ./build-blink-shell-gpl.sh
           ./build-blink-shell-gpl.sh
+          
+      - name: Force Compile & Package Raw Unsigned IPA
+        run: |
+          mkdir -p dist
+          
+          # Compile the raw binary ignoring Apple's provisioning profiles
+          xcodebuild -project Blink.xcodeproj \
+                     -scheme Blink \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     clean build
+          
+          # Create an official iOS directory footprint structure
+          mkdir -p dist/Payload
+          
+          # Find where Xcode output the app bundle and copy it over
+          cp -r build/Release-iphoneos/Blink.app dist/Payload/ || cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/Blink.app dist/Payload/
+          
+          # Compress into an installable zip container file (.ipa)
+          cd dist
+          zip -r Blink.ipa Payload
 
       - name: Upload Finished File
         uses: actions/upload-artifact@v4
         with:
           name: Blink-Shell-GPL
-          path: dist/*.ipa
+          path: dist/Blink.ipa
 
