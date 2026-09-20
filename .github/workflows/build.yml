@@ -13,8 +13,8 @@ jobs:
           git clone --recursive --depth 1 https://github.com/blinksh/blink.git .
           
           # Downloads Blink's native precompiled frameworks (OpenSSL, libssh2, etc.)
-          chmod +x ./build-blink-shell-gpl.sh
-          ./build-blink-shell-gpl.sh
+          chmod +x ./get_frameworks.sh
+          ./get_frameworks.sh
           
           # Cleans up shared workspace data that forces paid team constraints
           rm -rf Blink.xcodeproj/project.xcworkspace/xcshareddata/
@@ -48,4 +48,3 @@ jobs:
         with:
           name: Blink-Shell-GPL
           path: dist/Blink.ipa
-
