@@ -32,8 +32,8 @@ jobs:
         run: |
           mkdir -p dist
           
-          # Compiles the pristine project file while passing the native GPL switch 
-          xcodebuild -project Blink.xcodeproj \
+          # Changes compile flags from -project to -workspace to skip tvOS subdependencies
+          xcodebuild -workspace Blink.xcworkspace \
                      -scheme Blink \
                      -configuration Release \
                      -sdk iphoneos \
@@ -42,7 +42,6 @@ jobs:
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_IDENTITY="" \
                      SUPPORTS_MACCATALYST=NO \
-                     BUILD_INT_PLUGINS=NO \
                      clean build
           
           # Packages the output app structure into an iOS Payload directory
