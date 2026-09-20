@@ -6,9 +6,11 @@ on:
 jobs:
   build:
     runs-on: macos-14 # Provisions an official cloud Apple Silicon Mac
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true # Bypasses strict Node deprecation block
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2 # Updated to support modern runner environments
 
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
@@ -17,10 +19,10 @@ jobs:
         run: |
           chmod +x ./build.sh
           ./build.sh
-        # Note: The NewsGuyTor repository executes its tasks inside build.sh
 
       - name: Upload Finished File
         uses: actions/upload-artifact@v4
         with:
           name: Blink-Shell-GPL
           path: dist/*.ipa # Grabs the resulting iPad installation file
+
