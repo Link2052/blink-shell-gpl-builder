@@ -22,6 +22,9 @@ jobs:
           # Deduplicates the Mosh picker asset layout to stop the Xcode 16 compilation crash
           sed -i '' '/MoshCustomOptionsPickerView.swift/d' Blink.xcodeproj/project.pbxproj
 
+          # Creates the missing base configuration file required by the Xcode project layout
+          touch developer_setup.xcconfig
+
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
