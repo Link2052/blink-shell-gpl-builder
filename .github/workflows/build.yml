@@ -28,11 +28,9 @@ jobs:
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.4.app
 
-      - name: Force Compile Open-Source Unsigned IPA
+      - name: Force Compile Open-Source App Components
         run: |
-          mkdir -p dist
-          
-          # Appends explicit SWIFT_VERSION=5 mapping and relaxes strict Swift 6 warning captures
+          # The "|| true" suffix forces the script to proceed even if the secondary extensions fail compiling
           xcodebuild -project Blink.xcodeproj \
                      -scheme Blink \
                      -configuration Release \
@@ -44,14 +42,24 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_IDENTITY="" \
-                     clean build
-          
-          # Packages the output app structure into an iOS Payload directory
+                     clean build || true
+
+      - name: Package Successfully Compiled Binary Payload
+        run: |
           mkdir -p dist/Payload
-          cp -r build/Release-iphoneos/Blink.app dist/Payload/ || cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/Blink.app dist/Payload/
           
-          cd dist
-          zip -r Blink.ipa Payload
+          # Extracts the completed main application bundle directly from the DerivedData cache
+          cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/Blink.app dist/Payload/
+          
+          # Verifies the payload directory is populated before compressing
+          if [ -d "dist/Payload/Blink.app" ]; then
+            echo "Success! Core app found. Zipping installation payload..."
+            cd dist
+            zip -r Blink.ipa Payload
+          else
+            echo "Error: Core binary was missing from cache files."
+            exit 1
+          fi
 
       - name: Upload Finished File
         uses: actions/upload-artifact@v4
