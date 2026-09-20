@@ -9,9 +9,10 @@ jobs:
     steps:
       - name: Manually Clone Code Base
         run: |
+          git config --global init.defaultBranch main
           git init .
-          git remote add origin https://github.com{{ github.repository }}.git
-          git fetch --depth 1 origin ${{ github.sha }}
+          git remote add origin "https://github.com{{ github.repository }}.git"
+          git fetch --depth 1 origin "${{ github.sha }}"
           git checkout FETCH_HEAD
           git submodule update --init --recursive --depth 1
 
