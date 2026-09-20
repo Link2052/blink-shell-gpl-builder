@@ -19,8 +19,11 @@ jobs:
           # Cleans up shared workspace data that forces paid team constraints
           rm -rf Blink.xcodeproj/project.xcworkspace/xcshareddata/
 
+          # Deduplicates the Mosh picker asset layout to stop the Xcode 16 compilation crash
+          sed -i '' '/MoshCustomOptionsPickerView.swift/d' Blink.xcodeproj/project.pbxproj
+
       - name: Set up Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_16.0.app
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
       - name: Force Compile Open-Source Unsigned IPA
         run: |
