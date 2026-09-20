@@ -32,11 +32,12 @@ jobs:
         run: |
           mkdir -p dist
           
-          # Changes compile flags from -project to -workspace to skip tvOS subdependencies
-          xcodebuild -workspace Blink.xcworkspace \
+          # Compiles via -project while explicitly narrowing the target architecture down to pure iOS
+          xcodebuild -project Blink.xcodeproj \
                      -scheme Blink \
                      -configuration Release \
                      -sdk iphoneos \
+                     -destination 'generic/platform=iOS' \
                      GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GPL=1' \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
